@@ -1,0 +1,553 @@
+<html lang="es">
+<head>
+    <title>Conectores Lógicos Interactivos</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .sentence-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sentence-part {
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        #result {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .connector-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            text-align: left;
+            max-width: 600px;
+        }
+
+        .connector-info h3 {
+            margin-top: 0;
+        }
+
+        .explanation {
+            margin-top: 10px;
+            font-style: italic;
+            color: #555;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        #checkButton {
+            background-color: #28a745;
+        }
+
+        #checkButton:hover {
+            background-color: #1f7a34;
+        }
+
+        #feedback {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .interactive-image {
+            width: 200px;
+            height: 200px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        #score {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #finalScore {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Conectores Lógicos en Oraciones</h1>
+
+    <div class="sentence-container">
+        <span class="sentence-part" id="sentencePart1"></span>
+        <select id="connector">
+            <option value="y">y (Aditivo)</option>
+            <option value="o">o (Disyuntivo)</option>
+            <option value="pero">pero (Adversativo)</option>
+            <option value="porque">porque (Causal)</option>
+            <option value="luego">luego (Temporal)</option>
+            <option value="donde">donde (Locativo)</option>
+            <option value="ademas">además (Aditivo)</option>
+            <option value="es decir">es decir (Aclarativo)</option>
+            <option value="asi">así (Comparativo)</option>
+            <option value="por tanto">por tanto (Conclusivo)</option>
+            <option value="si">si (Condicional)</option>
+            <option value="en ese caso">en ese caso (Condicional)</option>
+            <option value="en cambio">en cambio (Continuativo)</option>
+        </select>
+        <span class="sentence-part" id="sentencePart2"></span>
+    </div>
+
+    <div id="result"></div>
+
+    <div class="connector-info" id="connectorInfo">
+        <h3>Información del Conector</h3>
+        <p id="connectorDefinition">Selecciona un conector para ver su definición.</p>
+        <p class="explanation" id="connectorExplanation"></p>
+    </div>
+
+    <div class="interactive-image" id="interactiveImage">
+       
+    </div>
+
+    <div class="button-container">
+        <button id="startButton">Inicio</button>
+        <button id="prevButton" disabled>Atrás</button>
+        <button id="nextButton" disabled>Siguiente</button>
+        <button id="resetButton">Reinicio</button>
+        <button id="checkButton">Verificar</button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div id="score">
+        Correctas: <span id="correctAnswers">0</span> | Incorrectas: <span id="incorrectAnswers">0</span>
+    </div>
+
+    <div id="finalScore" style="display:none;"></div>
+
+    <script>
+        const connectorSelect = document.getElementById('connector');
+        const resultDiv = document.getElementById('result');
+        const connectorInfoDiv = document.getElementById('connectorInfo');
+        const connectorDefinitionP = document.getElementById('connectorDefinition');
+        const connectorExplanationP = document.getElementById('connectorExplanation');
+        const sentencePart1Span = document.getElementById('sentencePart1');
+        const sentencePart2Span = document.getElementById('sentencePart2');
+        const interactiveImageDiv = document.getElementById('interactiveImage');
+        const feedbackDiv = document.getElementById('feedback');
+
+        const startButton = document.getElementById('startButton');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const resetButton = document.getElementById('resetButton');
+        const checkButton = document.getElementById('checkButton');
+
+        const connectorDefinitions = {
+            "y": {
+                definition: "El conector 'y' indica adición o suma de elementos.",
+                explanation: "Se usa para conectar dos ideas que se complementan."
+            },
+            "o": {
+                definition: "El conector 'o' indica una opción o alternativa entre dos elementos.",
+                explanation: "Se usa para presentar opciones diferentes."
+            },
+            "pero": {
+                definition: "El conector 'pero' indica contraste u oposición entre dos ideas.",
+                explanation: "Se usa para mostrar una excepción o contradicción."
+            },
+            "porque": {
+                definition: "El conector 'porque' indica causa o razón de algo.",
+                explanation: "Se usa para explicar el motivo de una acción o situación."
+            },
+             "luego": {
+                definition: "El conector 'luego' indica una secuencia temporal.",
+                explanation: "Se usa para indicar que una acción sigue a otra en el tiempo."
+            },
+            "donde": {
+                definition: "El conector 'donde' indica un lugar o ubicación.",
+                explanation: "Se usa para especificar el lugar en el que ocurre una acción."
+            },
+            "ademas": {
+                definition: "El conector 'además' añade información.",
+                explanation: "Se usa para agregar detalles o ideas adicionales."
+            },
+            "es decir": {
+                definition: "El conector 'es decir' aclara o explica.",
+                explanation: "Se usa para reformular una idea de manera más clara."
+            },
+            "asi": {
+                definition: "El conector 'así' compara dos elementos.",
+                explanation: "Se usa para establecer una relación de semejanza o modo."
+            },
+            "por tanto": {
+                definition: "El conector 'por tanto' expresa una conclusión.",
+                explanation: "Se usa para indicar el resultado lógico de una serie de ideas."
+            },
+            "si": {
+                definition: "El conector 'si' plantea una condición.",
+                explanation: "Se usa para establecer una hipótesis o requisito."
+            },
+             "en ese caso": {
+                definition: "El conector 'en ese caso' plantea una condición.",
+                explanation: "Se usa para establecer una hipótesis o requisito."
+            },
+            "en cambio": {
+                definition: "El conector 'en cambio' introduce un contraste.",
+                explanation: "Se usa para señalar una diferencia o alternativa opuesta."
+            }
+        };
+
+        const sentences = [
+            {
+                part1: "El cielo está nublado",
+                part2: "va a llover.",
+                connector: "porque",
+                image: "nublado.svg"
+            },
+            {
+                part1: "Quiero ir a la playa",
+                part2: "no tengo tiempo.",
+                connector: "pero",
+                image: "playa.svg"
+            },
+            {
+                part1: "Estudias mucho",
+                part2: "aprobarás el examen.",
+                connector: "y",
+                image: "estudio.svg"
+            },
+            {
+                part1: "¿Prefieres té",
+                part2: "café?",
+                connector: "o",
+                image: "te_cafe.svg"
+            },
+             {
+                part1: "Terminamos la tarea",
+                part2: "podemos salir a jugar.",
+                connector: "luego",
+                image: "tarea.svg"
+            },
+            {
+                part1: "Vivo",
+                part2: "hay un parque.",
+                connector: "donde",
+                image: "parque.svg"
+            },
+            {
+                part1: "Me gusta el chocolate",
+                part2: "el helado.",
+                connector: "ademas",
+                image: "chocolate_helado.svg"
+            },
+            {
+                part1: "Necesito concentrarme",
+                part2: "apagaré el móvil.",
+                connector: "es decir",
+                image: "concentracion.svg"
+            },
+            {
+                part1: "Eres rápido",
+                part2: "un rayo.",
+                connector: "asi",
+                image: "rayo.svg"
+            },
+            {
+                part1: "Pienso",
+                part2: "existo.",
+                connector: "por tanto",
+                image: "pensar.svg"
+            },
+            {
+                part1: "Llueve",
+                part2: "nos quedaremos en casa.",
+                connector: "si",
+                image: "lluvia.svg"
+            },
+            {
+                part1: "No estudias",
+                part2: "suspenderás.",
+                connector: "en ese caso",
+                image: "suspender.svg"
+            },
+            {
+                part1: "Aquí hace frío",
+                part2: "allí hace calor.",
+                connector: "en cambio",
+                image: "frio_calor.svg"
+            },
+             {
+                part1: "Ella canta",
+                part2: "él baila.",
+                connector: "y",
+                image: "cantar_bailar.svg"
+            },
+            {
+                part1: "¿Quieres pizza",
+                part2: "pasta?",
+                connector: "o",
+                image: "pizza_pasta.svg"
+            },
+            {
+                part1: "Es inteligente",
+                part2: "no estudia mucho.",
+                connector: "pero",
+                image: "inteligente.svg"
+            },
+            {
+                part1: "Estoy cansado",
+                part2: "dormiré temprano.",
+                connector: "porque",
+                image: "cansado.svg"
+            },
+            {
+                part1: "Primero comemos",
+                part2: "vamos al cine.",
+                connector: "luego",
+                image: "comer_cine.svg"
+            },
+            {
+                part1: "El libro está",
+                part2: "lo dejaste.",
+                connector: "donde",
+                image: "libro.svg"
+            },
+            {
+                part1: "Tengo un perro",
+                part2: "un gato.",
+                connector: "ademas",
+                image: "perro_gato.svg"
+            },
+             {
+                part1: "Debes ser puntual",
+                part2: "llegar a tiempo.",
+                connector: "es decir",
+                image: "puntual.svg"
+            },
+            {
+                part1: "Eres como",
+                part2: "un ángel.",
+                connector: "asi",
+                image: "angel.svg"
+            },
+            {
+                part1: "Pensamos diferente",
+                part2: "respetamos las opiniones.",
+                connector: "por tanto",
+                image: "respeto.svg"
+            },
+            {
+                part1: "Tienes fiebre",
+                part2: "descansarás.",
+                connector: "si",
+                image: "fiebre.svg"
+            },
+            {
+                part1: "No te esfuerzas",
+                part2: "fracasarás.",
+                connector: "en ese caso",
+                image: "esfuerzo.svg"
+            },
+            {
+                part1: "El día es soleado",
+                part2: "la noche es oscura.",
+                connector: "en cambio",
+                image: "dia_noche.svg"
+            },
+              {
+                part1: "Me gusta leer",
+                part2: "escribir.",
+                connector: "y",
+                image: "leer_escribir.svg"
+            },
+            {
+                part1: "¿Viajas en tren",
+                part2: "en avión?",
+                connector: "o",
+                image: "tren_avion.svg"
+            },
+            {
+                part1: "Es rico",
+                part2: "no es feliz.",
+                connector: "pero",
+                image: "rico.svg"
+            },
+             {
+                part1: "Estudio",
+                part2: "quiero aprender.",
+                connector: "porque",
+                image: "aprender.svg"
+            }
+
+        ];
+
+        let currentIndex = 0;
+        let gameStarted = false;
+        const totalSentences = sentences.length;
+        let finalScoreDisplayed = false;
+        let correctAnswers = 0;
+        let incorrectAnswers = 0;
+        let answered = false;
+
+        function updateContent(index) {
+            const sentence = sentences[index];
+            sentencePart1Span.textContent = sentence.part1;
+            sentencePart2Span.textContent = sentence.part2;
+            connectorSelect.value = "y";
+            answered = false;
+
+            const connectorData = connectorDefinitions["y"];
+            connectorDefinitionP.textContent = connectorData.definition;
+            connectorExplanationP.textContent = connectorData.explanation;
+
+            interactiveImageDiv.innerHTML = `<img src="${sentence.image}" alt="Imagen Interactiva" style="max-width: 100%; max-height: 100%;">`;
+
+            resultDiv.textContent = "";
+            feedbackDiv.textContent = "";
+        }
+
+        function checkAnswer() {
+             if (!answered) {
+                const selectedConnector = connectorSelect.value;
+                const sentence = sentences[currentIndex];
+
+                if (selectedConnector === sentence.connector) {
+                    feedbackDiv.textContent = "¡Correcto! La conexión lógica es verdadera.";
+                    feedbackDiv.style.color = "green";
+                    correctAnswers++;
+                } else {
+                    feedbackDiv.textContent = "Incorrecto. Intenta de nuevo.";
+                    feedbackDiv.style.color = "red";
+                    incorrectAnswers++;
+                }
+
+                document.getElementById('correctAnswers').textContent = correctAnswers;
+                document.getElementById('incorrectAnswers').textContent = incorrectAnswers;
+                 answered = true;
+            }
+        }
+
+        startButton.addEventListener('click', function() {
+            gameStarted = true;
+            currentIndex = 0;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            document.getElementById('correctAnswers').textContent = correctAnswers;
+            document.getElementById('incorrectAnswers').textContent = incorrectAnswers;
+            updateContent(currentIndex);
+            prevButton.disabled = false;
+            nextButton.disabled = false;
+            startButton.disabled = true;
+            finalScoreDisplayed = false; // Reset the flag
+            document.getElementById('finalScore').style.display = 'none';
+            document.getElementById('score').style.display = 'block';
+        });
+
+        prevButton.addEventListener('click', function() {
+            if (gameStarted) {
+                currentIndex = Math.max(0, currentIndex - 1);
+                updateContent(currentIndex);
+                if (currentIndex === 0) {
+                    prevButton.disabled = true;
+                }
+                nextButton.disabled = false;
+            }
+        });
+
+        nextButton.addEventListener('click', function() {
+            if (gameStarted) {
+               if (currentIndex < sentences.length - 1) {
+                    currentIndex++;
+                    updateContent(currentIndex);
+                    nextButton.disabled = (currentIndex === sentences.length - 1);
+                    prevButton.disabled = false;
+
+                } else {
+                    // Game finished
+                    document.getElementById('finalScore').textContent = `Juego Terminado! Puntaje Final: Correctas: ${correctAnswers}, Incorrectas: ${incorrectAnswers}`;
+                    document.getElementById('finalScore').style.display = 'block';
+                    document.getElementById('score').style.display = 'none';
+                    nextButton.disabled = true;
+                     finalScoreDisplayed = true;
+                }
+            }
+        });
+
+        resetButton.addEventListener('click', function() {
+            gameStarted = false;
+            connectorSelect.value = "y";
+             sentencePart1Span.textContent = "";
+             sentencePart2Span.textContent = "";
+             interactiveImageDiv.innerHTML = "";
+            connectorDefinitionP.textContent = "Selecciona un conector para ver su definición.";
+            connectorExplanationP.textContent = "";
+            resultDiv.textContent = "";
+            feedbackDiv.textContent = "";
+             answered = false;
+
+            prevButton.disabled = true;
+            nextButton.disabled = true;
+            startButton.disabled = false;
+            document.getElementById('score').style.display = 'none';
+            document.getElementById('finalScore').style.display = 'none';
+             finalScoreDisplayed = false;
+             correctAnswers = 0;
+             incorrectAnswers = 0;
+             document.getElementById('correctAnswers').textContent = correctAnswers;
+            document.getElementById('incorrectAnswers').textContent = incorrectAnswers;
+        });
+
+        checkButton.addEventListener('click', checkAnswer);
+
+        connectorSelect.addEventListener('change', function() {
+            const selectedConnector = connectorSelect.value;
+
+            const connectorData = connectorDefinitions[selectedConnector];
+            connectorDefinitionP.textContent = connectorData.definition;
+            connectorExplanationP.textContent = connectorData.explanation;
+        });
+    </script>
+</body>
+</html>
